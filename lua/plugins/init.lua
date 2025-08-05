@@ -1,3 +1,4 @@
+local overrides = require("configs.override")
 return {
   {
     "stevearc/conform.nvim",
@@ -71,4 +72,15 @@ return {
   "nvim-neotest/nvim-nio",
   lazy = true,
 },
+{
+   "nvim-telescope/telescope.nvim",
+   opts = overrides.telescope,
+},
+{
+   "nvim-tree/nvim-tree.lua",
+   config = function()
+     require("configs.nvim-tree").setup()
+   end,
+  },
 }
+

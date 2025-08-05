@@ -53,20 +53,25 @@ map("n", "<C-M-B>", function()
   elseif ext == "py" then
     local root_dir = get_project_root()
     local activate_path = get_activate_path(root_dir)
+    local file = vim.fn.expand("%:p")          -- caminho absoluto do arquivo
+    local relpath = file:sub(#root_dir + 2)    -- caminho relativo ao root
+    local module_name = relpath:gsub("/", "."):gsub("%.py$", "")
 
-    if activate_path then
-      cmd = string.format(
-        "gnome-terminal -- bash -c 'source \"%s\" && python \"%s\"; exec bash'",
-        activate_path,
-        file
-      )
-    else
-      -- fallback para python global se não achar venv
-      cmd = string.format(
-        "gnome-terminal -- bash -c 'python \"%s\"; exec bash'",
-        file
-      )
-    end
+  if activate_path then
+    cmd = string.format(
+      "gnome-terminal -- bash -c 'cd \"%s\" && source \"%s\" && python -m %s; exec bash'",
+      root_dir,
+      activate_path,
+      module_name
+    )
+  else
+    -- fallback python global, ainda rodando como módulo na raiz do projeto
+    cmd = string.format(
+      "gnome-terminal -- bash -c 'cd \"%s\" && python -m %s; exec bash'",
+      root_dir,
+      module_name
+    )
+  end
 
   elseif ext == "js" then
     cmd = string.format("gnome-terminal -- bash -c 'node \"%s\"; exec bash'", file)
