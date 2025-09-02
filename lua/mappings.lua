@@ -5,6 +5,10 @@ local map = vim.keymap.set
 local dap = require("dap")
 local dapui = require("dapui")
 
+-- ========================
+-- Funções utilitárias
+-- ========================
+
 -- Função para obter root do projeto (prefere root do LSP)
 local function get_project_root()
   local clients = vim.lsp.get_active_clients()
@@ -30,16 +34,41 @@ local function get_activate_path(root_dir)
   return nil
 end
 
+-- ========================
+-- Função genérica para abrir terminal externo em background
+-- ========================
+
+local function open_terminal(cmd)
+  local term = os.getenv("TERMINAL") or "kitty"   -- Kitty por padrão
+  local shell = os.getenv("SHELL") or "/bin/zsh"  -- Zsh puro
+
+  -- adiciona read para manter terminal aberto
+  local cmd_keep_open = cmd .. '; echo "\nPress ENTER to exit..."; read'
+
+  -- Executa em background via jobstart
+  vim.fn.jobstart({ term, shell, "-c", cmd_keep_open }, { detach = true })
+
+  -- Força redraw para evitar glitches de UI
+  vim.cmd("redraw")
+end
+
+-- ========================
+-- Keymaps gerais
+-- ========================
+
 map("n", ";", ":", { desc = "CMD enter command mode" })
 map("i", "jk", "<ESC>")
 map("i", "kj", "<ESC>")
 
+-- ========================
+-- Execução de arquivos
+-- ========================
+
 map("n", "<C-M-B>", function()
-  local file = vim.fn.expand("%:p")         -- caminho absoluto do arquivo atual
-  local dir = vim.fn.fnamemodify(file, ":h")-- diretório do arquivo
+  local file = vim.fn.expand("%:p")
+  local dir = vim.fn.fnamemodify(file, ":h")
   local ext = vim.fn.expand("%:e")
-  local output_name = vim.fn.expand("%:t:r")-- nome do arquivo sem extensão (base name)
-  local exec_path = dir .. "/" .. output_name
+  local output_name = vim.fn.expand("%:t:r")
 
   vim.cmd("w") -- salva arquivo
 
@@ -47,48 +76,39 @@ map("n", "<C-M-B>", function()
 
   if ext == "cpp" then
     cmd = string.format(
-      "gnome-terminal -- bash -c 'cd \"%s\" && g++ -std=c++23 -march=native -O2 \"%s\" -o \"%s\" && ./\"%s\"; exec bash'",
+      'cd "%s" && g++ -std=c++23 -march=native -O2 "%s" -o "%s" && "./%s"',
       dir, file, output_name, output_name
     )
   elseif ext == "py" then
     local root_dir = get_project_root()
     local activate_path = get_activate_path(root_dir)
-    local file = vim.fn.expand("%:p")          -- caminho absoluto do arquivo
-    local relpath = file:sub(#root_dir + 2)    -- caminho relativo ao root
+    local relpath = file:sub(#root_dir + 2)
     local module_name = relpath:gsub("/", "."):gsub("%.py$", "")
 
-  if activate_path then
-    cmd = string.format(
-      "gnome-terminal -- bash -c 'cd \"%s\" && source \"%s\" && python -m %s; exec bash'",
-      root_dir,
-      activate_path,
-      module_name
-    )
-  else
-    -- fallback python global, ainda rodando como módulo na raiz do projeto
-    cmd = string.format(
-      "gnome-terminal -- bash -c 'cd \"%s\" && python -m %s; exec bash'",
-      root_dir,
-      module_name
-    )
-  end
+    if activate_path then
+      cmd = string.format('cd "%s" && source "%s" && python -m %s', root_dir, activate_path, module_name)
+    else
+      cmd = string.format('cd "%s" && python -m %s', root_dir, module_name)
+    end
 
   elseif ext == "js" then
-    cmd = string.format("gnome-terminal -- bash -c 'node \"%s\"; exec bash'", file)
+    cmd = string.format('node "%s"', file)
   elseif ext == "ts" then
-    cmd = string.format("gnome-terminal -- bash -c 'tsc \"%s\" && node \"%s.js\"; exec bash'", file, output_name)
+    cmd = string.format('tsc "%s" && node "%s.js"', file, output_name)
   elseif ext == "sh" then
-    cmd = string.format("gnome-terminal -- bash -c 'bash \"%s\"; exec bash'", file)
+    cmd = string.format('bash "%s"', file)
   else
-    print("Extensão não suportada para execução automática: " .. ext)
+    print("Extensão não suportada: " .. ext)
     return
   end
 
-  os.execute(cmd)
+  open_terminal(cmd)
 end, { noremap = true, silent = true, desc = "Abrir em terminal externo" })
 
-
+-- ========================
 -- DAP keymaps
+-- ========================
+
 vim.keymap.set("n", "<F5>", function() dap.continue() end, { desc = "DAP Continue" })
 vim.keymap.set("n", "<F6>", function() dap.step_over() end, { desc = "DAP Step Over" })
 vim.keymap.set("n", "<F7>", function() dap.step_into() end, { desc = "DAP Step Into" })
@@ -118,29 +138,24 @@ vim.keymap.set("n", "<Leader>dl", function()  dapui.float_element("scopes") end,
 vim.keymap.set("n", "<Leader>dw", function() dapui.float_element("watches") end, { desc = "Floating watches" })
 
 vim.keymap.set("n", "<Leader>ds", function()
-  local dap = require("dap")
-  local dapui = require("dapui")
-
-  -- Fecha UI do DAP
   dapui.close()
-
-  -- Termina e desconecta sessão
   dap.terminate()
   dap.disconnect()
   dap.clear_breakpoints()
 
-  -- Desativa virtual text e força limpeza
   pcall(function()
     local vt = require("nvim-dap-virtual-text")
     vt.disable()
-    vt.refresh()  -- força a limpeza do overlay atual
+    vt.refresh()
   end)
 
-  -- Redesenha a tela
   vim.cmd("redraw")
 end, { desc = "DAP Stop & Clean" })
 
---Compiling C++ for debugging
+-- ========================
+-- Compilação C++ para debug
+-- ========================
+
 map("n", "<C-A-d>", function()
   local file = vim.fn.expand("%:p")
   local dir = vim.fn.fnamemodify(file, ":h")
