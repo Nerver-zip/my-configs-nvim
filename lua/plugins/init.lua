@@ -80,7 +80,64 @@ return {
    "nvim-tree/nvim-tree.lua",
    config = function()
      require("configs.nvim-tree").setup()
-   end,
+   end
+}, 
+{
+  "3rd/image.nvim",
+  lazy = false,
+  config = function()
+    require("image").setup({
+      backend = "kitty",
+      processor = "magick_cli",
+      integrations = {
+        markdown = { enabled = true },
+        neorg = { enabled = true },
+        typst = { enabled = true },
+        html = { enabled = false },
+        css = { enabled = false },
+      },
+      max_height_window_percentage = 50,
+      scale_factor = 1.0,
+      hijack_file_patterns = { "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.avif" },
+    })
+  end,
+},
+{
+  "folke/trouble.nvim",
+  opts = {}, -- for default options, refer to the configuration section for custom setup.
+  cmd = "Trouble",
+  keys = {
+    {
+      "<leader>xx",
+      "<cmd>Trouble diagnostics toggle<cr>",
+      desc = "Diagnostics (Trouble)",
+    },
+    {
+      "<leader>xX",
+      "<cmd>Trouble diagnostics toggle filter.buf=0<cr>",
+      desc = "Buffer Diagnostics (Trouble)",
+    },
+    {
+      "<leader>cs",
+      "<cmd>Trouble symbols toggle focus=false<cr>",
+      desc = "Symbols (Trouble)",
+    },
+    {
+      "<leader>cl",
+      "<cmd>Trouble lsp toggle focus=false win.position=right<cr>",
+      desc = "LSP Definitions / references / ... (Trouble)",
+    },
+    {
+      "<leader>xL",
+      "<cmd>Trouble loclist toggle<cr>",
+      desc = "Location List (Trouble)",
+    },
+    {
+      "<leader>xQ",
+      "<cmd>Trouble qflist toggle<cr>",
+      desc = "Quickfix List (Trouble)",
+    },
   },
+},
 }
 

@@ -134,7 +134,7 @@ vim.keymap.set("v", "<Leader>de", function() dapui.eval() end, { desc = "DAP Eva
 vim.keymap.set("n", "<Leader>dc", function() dap.run_to_cursor() end, { desc = "DAP Run to Cursor" })
 vim.keymap.set("n", "<Leader>dr", function() dap.restart() end, { desc = "DAP Restart" })
 vim.keymap.set("n", "<Leader>dl", function() dap.run_last() end, { desc = "DAP Run Last" })
-vim.keymap.set("n", "<Leader>dl", function()  dapui.float_element("scopes") end, { desc = "Floating locals" })
+vim.keymap.set("n", "<Leader>dL", function()  dapui.float_element("scopes") end, { desc = "Floating locals" })
 vim.keymap.set("n", "<Leader>dw", function() dapui.float_element("watches") end, { desc = "Floating watches" })
 
 vim.keymap.set("n", "<Leader>ds", function()
