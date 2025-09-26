@@ -31,9 +31,21 @@ vim.api.nvim_create_user_command("RunSh", function(opts)
 end, {
   nargs = "*"  -- aceita zero ou mais argumentos
 })
---Fecha todos os buffers exceto o aberto atualmente
+
+--Fechar todos os buffers
 vim.api.nvim_create_user_command("Bdall", function()
-  vim.cmd("%bd | e# | bd#")
+  local current = vim.api.nvim_get_current_buf()
+  local bufs = vim.api.nvim_list_bufs()
+
+  for _, b in ipairs(bufs) do
+    if vim.api.nvim_buf_is_loaded(b) and b ~= current then
+      -- não tenta fechar buffers especiais como NvimTree, lazy, etc
+      local bt = vim.bo[b].buftype
+      if bt == "" then
+        vim.api.nvim_buf_delete(b, {})
+      end
+    end
+  end
 end, {})
 
 
@@ -83,4 +95,12 @@ vim.api.nvim_create_user_command("PyEnv", function()
   else
     vim.notify("Nenhum ambiente virtual encontrado (.venv, venv, venv.bak)", vim.log.levels.WARN)
   end
+end, {})
+
+-- Roda "npm run dev" em um terminal numa nova aba
+vim.api.nvim_create_user_command("Dev", function()
+  local cmd = "npm run dev"
+  vim.cmd("tabnew")
+  vim.fn.termopen(cmd)
+  --vim.cmd("startinsert") -> já entra em modo insert dentro do terminal
 end, {})

@@ -1,4 +1,3 @@
---No momento só tenho alguns overrides do telescope
 return {
   defaults = {
     vimgrep_arguments = {
@@ -9,15 +8,17 @@ return {
       "--line-number",
       "--column",
       "--smart-case",
-      "--no-ignore",  -- força ignorar o .gitignore
+      "--no-ignore",      -- ignora o .gitignore
+      "--hidden",         -- inclui arquivos escondidos
     },
-    file_ignore_patterns = { "^%.git$", "^node_modules$", "%.pyc$", "%.o$" },
+    file_ignore_patterns = {}, -- nenhum padrão de ignore
   },
   pickers = {
     find_files = {
-      hidden = true,
-      no_ignore = true, -- não respeita .gitignore
-      find_command = { "fd", "--type", "f", "--no-ignore", "--hidden" },
+      hidden = true,       -- inclui dotfiles
+      no_ignore = true,    -- ignora o .gitignore
+      find_command = { "fd", "--type", "f", "--hidden", "--no-ignore" },
     },
   },
 }
+

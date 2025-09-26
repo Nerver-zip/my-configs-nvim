@@ -60,6 +60,12 @@ map("n", ";", ":", { desc = "CMD enter command mode" })
 map("i", "jk", "<ESC>")
 map("i", "kj", "<ESC>")
 
+-- Leader + t n → próxima tab
+map("n", "<Leader>tn", ":tabnext<CR>", { noremap = true, silent = true, desc = "next tab" })
+
+-- Leader + t p → tab anterior (opcional)
+map("n", "<Leader>tp", ":tabprevious<CR>", { noremap = true, silent = true, desc = "previous tab" })
+
 -- ========================
 -- Execução de arquivos
 -- ========================
@@ -103,7 +109,7 @@ map("n", "<C-M-B>", function()
   end
 
   open_terminal(cmd)
-end, { noremap = true, silent = true, desc = "Abrir em terminal externo" })
+end, { noremap = true, silent = true, desc = "Open in external terminal" })
 
 -- ========================
 -- DAP keymaps
@@ -174,4 +180,5 @@ map("n", "<C-A-d>", function()
   else
     print("Compilation failed:\n" .. result)
   end
-end, { noremap = true, silent = true, desc = "Compilar C++ para debug (sem terminal)" })
+end, { noremap = true, silent = true, desc = "Compilar C++ for debugging" })
+

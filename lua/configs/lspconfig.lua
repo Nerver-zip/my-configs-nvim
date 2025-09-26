@@ -1,15 +1,24 @@
-local lspconfig = require("lspconfig")
 local mason = require("mason")
 local mason_lspconfig = require("mason-lspconfig")
 local cmp_nvim_lsp = require("cmp_nvim_lsp")
 local cmp = require("cmp")
-local vim = vim
 local python_config = require("configs.python_configs")
 
 -- Setup Mason e mason-lspconfig
 mason.setup()
 mason_lspconfig.setup {
-  ensure_installed = { "clangd", "pyright", "html", "cssls", "ts_ls", "bashls" },
+  ensure_installed = {
+    "clangd",
+    "pyright",
+    "html",
+    "cssls",
+    "ts_ls",
+    "bashls",
+    "emmet_ls",
+    "tailwindcss",
+    "jsonls",
+    "eslint"
+    },
 }
 
 -- Capabilities para autocompletion
@@ -33,9 +42,7 @@ end
 -- Handler customizado para filtrar diagnósticos repetidos
 local original_handler = vim.lsp.handlers["textDocument/publishDiagnostics"]
 vim.lsp.handlers["textDocument/publishDiagnostics"] = function(err, method, diagnostics, client_id, bufnr, config)
-  local filtered = {}
-  local seen = {}
-
+  local filtered, seen = {}, {}
   for _, diag in ipairs(diagnostics) do
     local key = diag.lnum .. ":" .. diag.severity
     if not seen[key] then
@@ -43,7 +50,6 @@ vim.lsp.handlers["textDocument/publishDiagnostics"] = function(err, method, diag
       seen[key] = true
     end
   end
-
   original_handler(err, method, filtered, client_id, bufnr, config)
 end
 
@@ -52,10 +58,7 @@ vim.diagnostic.config({
   virtual_text = {
     prefix = "●",
     spacing = 4,
-    severity = nil, -- mostra todos os níveis
-    format = function(diagnostic)
-      return diagnostic.message
-    end,
+    format = function(diagnostic) return diagnostic.message end,
   },
   signs = true,
   underline = true,
@@ -67,20 +70,8 @@ vim.diagnostic.config({
 })
 
 vim.o.updatetime = 300
-local diagnostic_open = false
---Floating Window:
---vim.api.nvim_create_autocmd("CursorMoved", {
---  callback = function()
---    if diagnostic_open then return end
---    diagnostic_open = true
---    vim.defer_fn(function()
---      vim.diagnostic.open_float(nil, { focus = false, border = "rounded" })
---      diagnostic_open = false
---    end, vim.o.updatetime)
---  end,
---})
 
--- Configura servidores LSP
+-- Servidores
 local servers = {
   clangd = {
     cmd = { "clangd" },
@@ -98,10 +89,24 @@ local servers = {
   bashls = {},
 }
 
-for server, opts in pairs(servers) do
-  opts.capabilities = capabilities
-  opts.on_attach = on_attach
-  lspconfig[server].setup(opts)
+-- Detecta se estamos em nvim 0.11+
+if vim.lsp.config then
+  -- Defaults globais
+  vim.lsp.config("*", { capabilities = capabilities, on_attach = on_attach })
+
+  -- Configuração individual
+  for server, opts in pairs(servers) do
+    vim.lsp.config(server, opts)
+    vim.lsp.enable(server)
+  end
+else
+  -- Compatibilidade com nvim <= 0.10
+  local lspconfig = require("lspconfig")
+  for server, opts in pairs(servers) do
+    opts.capabilities = capabilities
+    opts.on_attach = on_attach
+    lspconfig[server].setup(opts)
+  end
 end
 
 -- Configuração do nvim-cmp para autocomplete
@@ -111,7 +116,7 @@ cmp.setup({
       if cmp.visible() then
         cmp.select_next_item()
       else
-        fallback() -- insere tab normal se não tiver sugestão
+        fallback()
       end
     end,
     ["<S-Tab>"] = function(fallback)
@@ -121,11 +126,8 @@ cmp.setup({
         fallback()
       end
     end,
-    ["<C-.>"] = function()
-      vim.lsp.buf.code_action()
-    end,
+    ["<C-.>"] = function() vim.lsp.buf.code_action() end,
     ["<CR>"] = cmp.mapping.confirm({ select = true }),
     ["<C-Space>"] = cmp.mapping.complete(),
   },
-  -- você pode adicionar suas fontes e outras configs aqui
 })
