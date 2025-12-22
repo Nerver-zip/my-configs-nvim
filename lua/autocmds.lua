@@ -104,3 +104,42 @@ vim.api.nvim_create_user_command("Dev", function()
   vim.fn.termopen(cmd)
   --vim.cmd("startinsert") -> já entra em modo insert dentro do terminal
 end, {})
+
+----===============TEMPLATES=========================
+-- Insere um template para C++ para leetcode contest
+vim.api.nvim_create_user_command("CP", function()
+  local template = vim.fn.stdpath("config") .. "/templates/cpp_template.cpp"
+  -- lê o arquivo e insere no buffer atual
+  vim.cmd("0r " .. template)
+  vim.api.nvim_win_set_cursor(0, {6, 0})
+end, {})
+
+-- UF (DSU)
+vim.api.nvim_create_user_command("UF", function()
+    local template = vim.fn.stdpath("config") .. "/templates/UF.cpp"
+
+    -- posição atual do cursor
+    local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+
+    -- lê as linhas do template
+    local lines = vim.fn.readfile(template)
+
+    -- insere as linhas na posição atual
+    vim.api.nvim_buf_set_lines(0, row, row, false, lines)
+
+    -- move o cursor para o final do bloco colado
+    local new_row = row + #lines
+    local new_col = #lines[#lines] -- última coluna da última linha
+    vim.api.nvim_win_set_cursor(0, {new_row, new_col})
+end, {})
+
+-- IsPrime
+vim.api.nvim_create_user_command("IsPrime", function()
+    local template = vim.fn.stdpath("config") .. "/templates/isPrime.cpp"
+    local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+    local lines = vim.fn.readfile(template)
+    vim.api.nvim_buf_set_lines(0, row, row, false, lines)
+    local new_row = row + #lines
+    local new_col = #lines[#lines]
+    vim.api.nvim_win_set_cursor(0, {new_row, new_col})
+end, {})

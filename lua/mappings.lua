@@ -59,6 +59,8 @@ end
 map("n", ";", ":", { desc = "CMD enter command mode" })
 map("i", "jk", "<ESC>")
 map("i", "kj", "<ESC>")
+map("i", "ij", "<Esc>")
+map("i", "ji", "<Esc>")
 
 -- Leader + t n → próxima tab
 map("n", "<Leader>tn", ":tabnext<CR>", { noremap = true, silent = true, desc = "next tab" })
@@ -182,3 +184,7 @@ map("n", "<C-A-d>", function()
   end
 end, { noremap = true, silent = true, desc = "Compilar C++ for debugging" })
 
+-- ======
+-- NEOGEN
+-- ======
+map("n", "<leader>ng", ":Neogen<CR>", { desc = "Generate docstring via Neogen" })

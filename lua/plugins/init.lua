@@ -82,6 +82,13 @@ return {
      require("configs.nvim-tree").setup()
    end
 },
+-- Neogen (gerador de comentários)
+{
+  "danymat/neogen",
+  cmd = "Neogen",
+  config = true,
+  dependencies = "nvim-treesitter/nvim-treesitter"
+},
 {
   "3rd/image.nvim",
   lazy = false,

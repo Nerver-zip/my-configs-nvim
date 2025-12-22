@@ -17,7 +17,8 @@ mason_lspconfig.setup {
     "emmet_ls",
     "tailwindcss",
     "jsonls",
-    "eslint"
+    "eslint",
+    "lua_ls"
     },
 }
 
