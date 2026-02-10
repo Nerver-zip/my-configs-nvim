@@ -143,3 +143,14 @@ vim.api.nvim_create_user_command("IsPrime", function()
     local new_col = #lines[#lines]
     vim.api.nvim_win_set_cursor(0, {new_row, new_col})
 end, {})
+
+-- Sieve of Eratosthenes
+vim.api.nvim_create_user_command("Sieve", function()
+    local template = vim.fn.stdpath("config") .. "/templates/sieve.cpp"
+    local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+    local lines = vim.fn.readfile(template)
+    vim.api.nvim_buf_set_lines(0, row, row, false, lines)
+    local new_row = row + #lines
+    local new_col = #lines[#lines]
+    vim.api.nvim_win_set_cursor(0, {new_row, new_col})
+end, {})
