@@ -1,19 +1,19 @@
-vector<ll> prefix;
-vector<bool> prime;
+vector<ll> primes;
+vector<bool> isPrime;
 void sieveOfEratosthenes(int n) {
 
-    prime.assign(n + 1, true);
-    prime[0] = false, prime[1] = false;
+    isPrime.assign(n + 1, true);
+    isPrime[0] = false, isPrime[1] = false;
 
     for (int p = 2; p * p <= n; p++) {
-        if (prime[p] == true) {
+        if (isPrime[p] == true) {
             for (int i = p * p; i <= n; i += p)
-                prime[i] = false;
+                isPrime[i] = false;
         }
     }
     
     ll curr = 0;
     for (int p = 2; p <= n; p++)
-        if (prime[p])
-            prefix.push_back(p);
+        if (isPrime[p])
+            primes.push_back(p);
 }
