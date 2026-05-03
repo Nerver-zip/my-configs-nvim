@@ -18,7 +18,8 @@ mason_lspconfig.setup {
     "tailwindcss",
     "jsonls",
     "eslint",
-    "lua_ls"
+    "lua_ls",
+    "vhdl_ls"
     },
 }
 
@@ -88,6 +89,7 @@ local servers = {
   cssls = {},
   ts_ls = {},
   bashls = {},
+  vhdl_ls = {},
 }
 
 -- Detecta se estamos em nvim 0.11+
