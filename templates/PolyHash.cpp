@@ -7,11 +7,11 @@ struct PolyHash {
 
     std::deque<int> dq;
     ll hash = 0;
-
-    static void init(int maxN) {
-        ensure(maxN);
-    }
     
+    static void init(int maxN) {
+        ensure_powers(maxN);
+    }
+
     static void ensure_powers(int n) {
         if ((int)powers.size() > n) return;
         int cur = powers.size();
@@ -20,11 +20,19 @@ struct PolyHash {
             powers[i] = (powers[i-1] * BASE) % MOD;
     }
 
+    PolyHash(const string& s) {
+        ensure_powers(s.size());
+        for(char c : s) {
+            int x = c - 'a' + 1;
+            hash = (hash * BASE + x) % MOD;
+            dq.push_back(x);
+        }
+    }
+
     int size() const {
         return dq.size();
     }
 
-    // --- PUSH BACK ---
     void push_back(char c) {
         int x = c - 'a' + 1;
         ensure_powers(size());
@@ -33,7 +41,6 @@ struct PolyHash {
         dq.push_back(x);
     }
 
-    // --- PUSH FRONT ---
     void push_front(char c) {
         int x = c - 'a' + 1;
         ensure_powers(size());
@@ -42,7 +49,6 @@ struct PolyHash {
         dq.push_front(x);
     }
 
-    // --- POP BACK ---
     void pop_back() {
         if (dq.empty()) return;
 
@@ -53,7 +59,6 @@ struct PolyHash {
         hash = (hash * mod_inv(BASE)) % MOD;
     }
 
-    // --- POP FRONT ---
     void pop_front() {
         if (dq.empty()) return;
 
@@ -66,12 +71,11 @@ struct PolyHash {
         hash = (hash - rem + MOD) % MOD;
     }
 
-    // --- HASH TOTAL ---
     ll get() const {
         return hash;
     }
 
-    // --- SUBSTRING HASH (O(n)) ---
+    // (O(n))
     ll get(int l, int r) {
         ll h = 0;
         for (int i = l; i < r; ++i) {
