@@ -84,7 +84,7 @@ map("n", "<C-M-B>", function()
 
   if ext == "cpp" then
     cmd = string.format(
-      'cd "%s" && g++ -std=c++23 -march=native -O2 "%s" -o "%s" && "./%s"',
+      'cd "%s" && g++ -std=c++23 -march=native -O2 -DLOCAL "%s" -o "%s" && "./%s"',
       dir, file, output_name, output_name
     )
   elseif ext == "py" then

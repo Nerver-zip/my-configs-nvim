@@ -12,6 +12,13 @@ vim.api.nvim_create_user_command("CleanTxt", function()
   vim.fn.termopen(cmd)
 end, {})
 
+-- Diff entre output e expected
+vim.api.nvim_create_user_command("Diff", function()
+  local cmd = "diff output.txt expected.txt"
+  vim.cmd("tabnew") -- ou `vsplit`/`split` se preferir
+  vim.fn.termopen(cmd)
+end, {})
+
 --Running .sh scripts
 local function find_root()
   local git_root = vim.fn.systemlist("git rev-parse --show-toplevel")[1]
@@ -158,6 +165,25 @@ end, {})
 -- PolyHash
 vim.api.nvim_create_user_command("PolyHash", function()
     local template = vim.fn.stdpath("config") .. "/templates/PolyHash.cpp"
+    local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+    local lines = vim.fn.readfile(template)
+    vim.api.nvim_buf_set_lines(0, row, row, false, lines)
+    local new_row = row + #lines
+    local new_col = #lines[#lines]
+    vim.api.nvim_win_set_cursor(0, {new_row, new_col})
+end, {})
+
+-- Beecrowd
+vim.api.nvim_create_user_command("BC", function()
+  local template = vim.fn.stdpath("config") .. "/templates/beecrowd.cpp"
+  -- lê o arquivo e insere no buffer atual
+  vim.cmd("0r " .. template)
+  vim.api.nvim_win_set_cursor(0, {159, 0})
+end, {})
+
+-- SPF 
+vim.api.nvim_create_user_command("SPF", function()
+    local template = vim.fn.stdpath("config") .. "/templates/SPF.cpp"
     local row, col = unpack(vim.api.nvim_win_get_cursor(0))
     local lines = vim.fn.readfile(template)
     vim.api.nvim_buf_set_lines(0, row, row, false, lines)
