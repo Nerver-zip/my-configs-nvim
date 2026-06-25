@@ -172,7 +172,7 @@ map("n", "<C-A-d>", function()
   vim.cmd("w")
 
   local compile_cmd = string.format(
-    "g++ -g -O0 -std=c++23 '%s' -o '%s/%s'",
+    "g++ -g -O0 -DLOCAL -std=c++23 '%s' -o '%s/%s'",
     file, dir, output_name
   )
   local result = vim.fn.system(compile_cmd)
