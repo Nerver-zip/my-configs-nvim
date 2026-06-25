@@ -35,11 +35,15 @@ rm -rf "$HOME/.local/state/nvim"
 rm -rf "$HOME/.cache/nvim"
 echo -e "${GREEN}[✓] Limpeza de dados antigos concluída.${NC}"
 
-# 3. Clonagem do repositório
-echo -e "${BLUE}[!] Clonando a nova configuração a partir de $REPO_URL...${NC}"
-git clone --depth 1 "$REPO_URL" "$NVIM_DIR"
+VERSION="v1.0.0"
+RELEASE_URL="https://github.com/Nerver-zip/nvim/archive/refs/tags/${VERSION}.tar.gz"
 
-if [ $? -eq 0 ]; then
+# 3. Download e extração da release
+echo -e "${BLUE}[!] Baixando e extraindo a configuração (${VERSION}) a partir de $RELEASE_URL...${NC}"
+mkdir -p "$NVIM_DIR"
+
+curl -L "$RELEASE_URL" | tar -xzf - -C "$NVIM_DIR" --strip-components=1
+if [ ${PIPESTATUS[0]} -eq 0 ] && [ ${PIPESTATUS[1]} -eq 0 ]; then
     echo -e "${GREEN}===================================================${NC}"
     echo -e "${GREEN}[✓] Instalação concluída com sucesso!${NC}"
     echo -e "${GREEN}===================================================${NC}"
@@ -48,7 +52,7 @@ if [ $? -eq 0 ]; then
     echo -e "2. O lazy.nvim irá baixar e instalar todos os plugins automaticamente."
     echo -e "3. Depois que a instalação terminar, feche e abra o Neovim novamente."
 else
-    echo -e "${RED}[✗] Falha ao clonar o repositório.${NC}"
-    echo -e "${RED}[!] Verifique se você tem 'git' instalado e conexão com a internet.${NC}"
+    echo -e "${RED}[✗] Falha ao baixar ou extrair a configuração.${NC}"
+    echo -e "${RED}[!] Certifique-se de que a versão ${VERSION} existe no GitHub e que você possui conexão com a internet.${NC}"
     exit 1
 fi
