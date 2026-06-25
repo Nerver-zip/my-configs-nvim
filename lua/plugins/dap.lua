@@ -30,33 +30,66 @@ return {
         dap.listeners.before.event_terminated["dapui_config"] = function() dapui.close() end
         dap.listeners.before.event_exited["dapui_config"] = function() dapui.close() end
 
-    -- Adaptador GDB (exemplo com OpenDebugAD7)
-    dap.adapters.cppdbg = {
-      id = "cppdbg",
-      type = "executable",
-      command = vim.fn.stdpath("data") .. "/debug/bin/OpenDebugAD7",
-}
-  dap.configurations.cpp = {
-      {
+    -- Setup C++ DAP Adapter dynamically
+    local adapter_type = "cppdbg"
+    local cppdbg_path = vim.fn.stdpath("data") .. "/debug/bin/OpenDebugAD7"
+
+    if vim.fn.filereadable(cppdbg_path) == 1 then
+      dap.adapters.cppdbg = {
+        id = "cppdbg",
+        type = "executable",
+        command = cppdbg_path,
+      }
+      adapter_type = "cppdbg"
+    else
+      -- Check for system lldb-dap/lldb-vscode or gdb
+      local lldb_bin = vim.fn.executable("lldb-dap") == 1 and "lldb-dap"
+        or (vim.fn.executable("lldb-vscode") == 1 and "lldb-vscode" or nil)
+      if lldb_bin then
+        dap.adapters.lldb = {
+          type = "executable",
+          command = lldb_bin,
+          name = "lldb",
+        }
+        adapter_type = "lldb"
+      elseif vim.fn.executable("gdb") == 1 then
+        dap.adapters.gdb = {
+          type = "executable",
+          command = "gdb",
+          args = { "-i", "dap" },
+        }
+        adapter_type = "gdb"
+      else
+        adapter_type = nil
+      end
+    end
+
+    if adapter_type then
+      local config = {
         name = "Launch",
-        type = "cppdbg",
+        type = adapter_type,
         request = "launch",
         program = function()
           local filepath = vim.fn.expand("%:p")          -- caminho completo do arquivo atual
           local dir = vim.fn.fnamemodify(filepath, ":h") -- diretório do arquivo
           local output_name = vim.fn.expand("%:t:r")     -- nome do arquivo sem extensão
-          return dir .. "/" .. output_name                 -- executável esperado
+          return vim.fs.joinpath(dir, output_name)
         end,
         cwd = "${workspaceFolder}",
         stopAtEntry = true,
-        setupCommands = {
+      }
+
+      if adapter_type == "cppdbg" then
+        config.setupCommands = {
           {
             text = "-enable-pretty-printing",
             description = "Enable pretty printing",
             ignoreFailures = true,
           },
-        },
-      },
-    }
+        }
+      end
+
+      dap.configurations.cpp = { config }
+    end
   end,
 }

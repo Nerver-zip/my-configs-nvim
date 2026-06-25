@@ -8,13 +8,30 @@ local fn = vim.fn
 -- =========================================================
 
 local function open_term(cmd)
+  local expanded_cmd = cmd
+  if cmd:sub(1, 1) == "~" then
+    expanded_cmd = vim.fn.expand(cmd)
+  end
+
+  -- Extract the executable/script to verify it exists
+  local parts = vim.split(expanded_cmd, " ")
+  local exe = parts[1]
+  if vim.fn.executable(exe) == 0 then
+    vim.notify("Command or script not found/executable: " .. exe, vim.log.levels.ERROR)
+    return
+  end
+
   vim.cmd.tabnew()
-  fn.termopen(cmd)
+  fn.termopen(expanded_cmd)
 end
 
 local function create_term_cmd(name, cmd)
   api.nvim_create_user_command(name, function(opts)
-    local full_cmd = opts.args ~= "" and (cmd .. " " .. opts.args) or cmd
+    local actual_cmd = type(cmd) == "function" and cmd() or cmd
+    if type(actual_cmd) == "string" and actual_cmd:sub(1, 1) == "~" then
+      actual_cmd = vim.fn.expand(actual_cmd)
+    end
+    local full_cmd = opts.args ~= "" and (actual_cmd .. " " .. opts.args) or actual_cmd
     open_term(full_cmd)
   end, {
     nargs = "*",
@@ -55,12 +72,12 @@ end
 
 create_term_cmd(
   "CleanBin",
-  "/home/nerver/Desktop/dev/Leetcode/clean_all.sh"
+  "~/Desktop/dev/Leetcode/clean_all.sh"
 )
 
 create_term_cmd(
   "CleanTxt",
-  "/home/nerver/Desktop/dev/testcases/clean_all.sh"
+  "~/Desktop/dev/testcases/clean_all.sh"
 )
 
 create_term_cmd("Diff", "diff output.txt expected.txt")

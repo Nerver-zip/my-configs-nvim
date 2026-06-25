@@ -6,10 +6,16 @@ return {
   },
   {
     "williamboman/mason.nvim",
+    enabled = function()
+      return vim.fn.has("android") == 0
+    end,
     config = true,
   },
   {
     "williamboman/mason-lspconfig.nvim",
+    enabled = function()
+      return vim.fn.has("android") == 0
+    end,
     config = true,
   },
   {
@@ -89,26 +95,29 @@ return {
   config = true,
   dependencies = "nvim-treesitter/nvim-treesitter"
 },
-{
-  "3rd/image.nvim",
-  lazy = false,
-  config = function()
-    require("image").setup({
-      backend = "kitty",
-      processor = "magick_cli",
-      integrations = {
-        markdown = { enabled = true },
-        neorg = { enabled = true },
-        typst = { enabled = true },
-        html = { enabled = false },
-        css = { enabled = false },
-      },
-      max_height_window_percentage = 50,
-      scale_factor = 1.0,
-      hijack_file_patterns = { "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.avif" },
-    })
-  end,
-},
+  {
+    "3rd/image.nvim",
+    enabled = function()
+      return vim.fn.has("android") == 0 and vim.env.TERM == "xterm-kitty" and vim.fn.executable("magick") == 1
+    end,
+    lazy = false,
+    config = function()
+      require("image").setup({
+        backend = "kitty",
+        processor = "magick_cli",
+        integrations = {
+          markdown = { enabled = true },
+          neorg = { enabled = true },
+          typst = { enabled = true },
+          html = { enabled = false },
+          css = { enabled = false },
+        },
+        max_height_window_percentage = 50,
+        scale_factor = 1.0,
+        hijack_file_patterns = { "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.avif" },
+      })
+    end,
+  },
 {
   "folke/trouble.nvim",
   opts = {}, -- for default options, refer to the configuration section for custom setup.

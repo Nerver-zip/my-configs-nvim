@@ -1,27 +1,32 @@
-local mason = require("mason")
-local mason_lspconfig = require("mason-lspconfig")
+local has_mason, mason = pcall(require, "mason")
+local has_mason_lsp, mason_lspconfig = pcall(require, "mason-lspconfig")
 local cmp_nvim_lsp = require("cmp_nvim_lsp")
 local cmp = require("cmp")
 local python_config = require("configs.python_configs")
 
--- Setup Mason e mason-lspconfig
-mason.setup()
-mason_lspconfig.setup {
-  ensure_installed = {
-    "clangd",
-    "pyright",
-    "html",
-    "cssls",
-    "ts_ls",
-    "bashls",
-    "emmet_ls",
-    "tailwindcss",
-    "jsonls",
-    "eslint",
-    "lua_ls",
-    "vhdl_ls"
-    },
-}
+-- Setup Mason e mason-lspconfig (if available)
+if has_mason then
+  mason.setup()
+end
+
+if has_mason_lsp then
+  mason_lspconfig.setup {
+    ensure_installed = {
+      "clangd",
+      "pyright",
+      "html",
+      "cssls",
+      "ts_ls",
+      "bashls",
+      "emmet_ls",
+      "tailwindcss",
+      "jsonls",
+      "eslint",
+      "lua_ls",
+      "vhdl_ls"
+      },
+  }
+end
 
 -- Capabilities para autocompletion
 local capabilities = cmp_nvim_lsp.default_capabilities()
@@ -90,6 +95,11 @@ local servers = {
   ts_ls = {},
   bashls = {},
   vhdl_ls = {},
+  lua_ls = {},
+  emmet_ls = {},
+  tailwindcss = {},
+  jsonls = {},
+  eslint = {},
 }
 
 -- Detecta se estamos em nvim 0.11+

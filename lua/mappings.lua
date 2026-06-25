@@ -21,10 +21,13 @@ end
 
 -- Função para buscar caminho do activate do venv
 local function get_activate_path(root_dir)
-  local sep = package.config:sub(1,1)
+  local is_windows = vim.fn.has("win32") == 1
+  local bin_dir = is_windows and "Scripts" or "bin"
+  local act_name = is_windows and "activate.bat" or "activate"
+
   local candidates = {
-    root_dir .. sep .. "venv" .. sep .. "bin" .. sep .. "activate",
-    root_dir .. sep .. ".venv" .. sep .. "bin" .. sep .. "activate",
+    vim.fs.joinpath(root_dir, "venv", bin_dir, act_name),
+    vim.fs.joinpath(root_dir, ".venv", bin_dir, act_name),
   }
   for _, path in ipairs(candidates) do
     if vim.fn.filereadable(path) == 1 then
@@ -35,21 +38,28 @@ local function get_activate_path(root_dir)
 end
 
 -- ========================
--- Função genérica para abrir terminal externo em background
+-- Função genérica para abrir terminal externo ou interno
 -- ========================
 
 local function open_terminal(cmd)
-  local term = os.getenv("TERMINAL") or "kitty"   -- Kitty por padrão
-  local shell = os.getenv("SHELL") or "/bin/zsh"  -- Zsh puro
+  local term = os.getenv("TERMINAL") or "kitty"
+  local shell = os.getenv("SHELL") or vim.o.shell or "sh"
 
   -- adiciona read para manter terminal aberto
   local cmd_keep_open = cmd .. '; echo "\nPress ENTER to exit..."; read'
 
-  -- Executa em background via jobstart
-  vim.fn.jobstart({ term, shell, "-c", cmd_keep_open }, { detach = true })
+  local is_android = vim.fn.has("android") == 1
+  local has_gui = (vim.env.DISPLAY ~= nil or vim.env.WAYLAND_DISPLAY ~= nil)
 
-  -- Força redraw para evitar glitches de UI
-  vim.cmd("redraw")
+  if is_android or not has_gui or vim.fn.executable(term) == 0 then
+    -- Abre no terminal embutido do Neovim
+    local split_cmd = vim.o.columns > 100 and "vsplit" or "split"
+    vim.cmd(split_cmd .. " | terminal " .. cmd_keep_open)
+  else
+    -- Executa em background via jobstart
+    vim.fn.jobstart({ term, shell, "-c", cmd_keep_open }, { detach = true })
+    vim.cmd("redraw")
+  end
 end
 
 -- ========================
@@ -83,9 +93,10 @@ map("n", "<C-M-B>", function()
   local cmd = ""
 
   if ext == "cpp" then
+    local compiler = vim.fn.executable("g++") == 1 and "g++" or "clang++"
     cmd = string.format(
-      'cd "%s" && g++ -std=c++23 -march=native -O2 -DLOCAL "%s" -o "%s" && "./%s"',
-      dir, file, output_name, output_name
+      'cd "%s" && %s -std=c++23 -march=native -O2 -DLOCAL "%s" -o "%s" && "./%s"',
+      dir, compiler, file, output_name, output_name
     )
   elseif ext == "py" then
     local root_dir = get_project_root()
@@ -111,7 +122,7 @@ map("n", "<C-M-B>", function()
   end
 
   open_terminal(cmd)
-end, { noremap = true, silent = true, desc = "Open in external terminal" })
+end, { noremap = true, silent = true, desc = "Open in terminal" })
 
 -- ========================
 -- DAP keymaps
@@ -171,9 +182,10 @@ map("n", "<C-A-d>", function()
 
   vim.cmd("w")
 
+  local compiler = vim.fn.executable("g++") == 1 and "g++" or "clang++"
   local compile_cmd = string.format(
-    "g++ -g -O0 -DLOCAL -std=c++23 '%s' -o '%s/%s'",
-    file, dir, output_name
+    "%s -g -O0 -DLOCAL -std=c++23 '%s' -o '%s/%s'",
+    compiler, file, dir, output_name
   )
   local result = vim.fn.system(compile_cmd)
 
