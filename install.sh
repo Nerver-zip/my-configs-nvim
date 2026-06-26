@@ -26,8 +26,10 @@ fi
 read -p "Deseja instalar o Neovim compilando a partir da fonte? [y/N]: " build_from_source < /dev/tty
 
 if [[ "$build_from_source" =~ ^[yY]$ ]]; then
-    # Instalação no home do usuário (~/.local), ideal para computadores compartilhados e Termux
-    PREFIX="$HOME/.local"
+    # IMPORTANTE: Não sobrescrevemos a variável 'PREFIX', pois no Termux ela é exportada
+    # e aponta para o diretório de pacotes (/data/data/com.termux/files/usr).
+    # Alterá-la quebra o CMake/compilador que não conseguem achar os headers do sistema.
+    NVIM_INSTALL_PREFIX="$HOME/.local"
     BUILD_DIR="$HOME/.cache/neovim-build"
 
     echo -e "${BLUE}Clonando o repositório do Neovim (branch stable)...${NC}"
@@ -41,15 +43,15 @@ if [[ "$build_from_source" =~ ^[yY]$ ]]; then
     
     cd "$BUILD_DIR"
     echo -e "${BLUE}Compilando o Neovim... (isso pode levar alguns minutos)${NC}"
-    make CMAKE_BUILD_TYPE=RelWithDebInfo CMAKE_INSTALL_PREFIX="$PREFIX"
+    make CMAKE_BUILD_TYPE=RelWithDebInfo CMAKE_INSTALL_PREFIX="$NVIM_INSTALL_PREFIX"
     
     if [ $? -ne 0 ]; then
         echo -e "${RED}[✗] Erro durante a compilação do Neovim.${NC}"
         exit 1
     fi
     
-    echo -e "${BLUE}Instalando o Neovim em $PREFIX...${NC}"
-    make install
+    echo -e "${BLUE}Instalando o Neovim em $NVIM_INSTALL_PREFIX...${NC}"
+    make install CMAKE_INSTALL_PREFIX="$NVIM_INSTALL_PREFIX"
     
     if [ $? -ne 0 ]; then
         echo -e "${RED}[✗] Erro durante a instalação do Neovim.${NC}"
