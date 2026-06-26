@@ -81,7 +81,13 @@ vim.o.updatetime = 300
 -- Servidores
 local servers = {
   clangd = {
-    cmd = { "clangd" },
+    cmd = {
+      "clangd",
+      "--background-index",
+      "--clang-tidy",
+      "--header-insertion=never",
+      "--query-driver=*",
+    },
   },
   pyright = {
     before_init = function(_, config)

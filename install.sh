@@ -101,22 +101,13 @@ else
         fi
     fi
 
-    # Como o repositório é privado, usamos clone via Git (SSH/HTTPS) que lida com autenticação do usuário
-    REPO_URL="git@github.com:Nerver-zip/nvim.git"
+    REPO_URL="https://github.com/Nerver-zip/nvim.git"
     echo -e "${BLUE}[!] Clonando a nova configuração a partir de $REPO_URL...${NC}"
-    
-    # Tenta clonar via SSH
     git clone --depth 1 "$REPO_URL" "$NVIM_DIR"
-    if [ $? -ne 0 ]; then
-        # Se falhar (por exemplo, sem chaves SSH cadastradas na máquina nova), tenta HTTPS
-        REPO_URL_HTTPS="https://github.com/Nerver-zip/nvim.git"
-        echo -e "${YELLOW}[!] Falha ao clonar via SSH. Tentando via HTTPS ($REPO_URL_HTTPS)...${NC}"
-        git clone --depth 1 "$REPO_URL_HTTPS" "$NVIM_DIR"
-    fi
 
     if [ $? -ne 0 ]; then
         echo -e "${RED}[✗] Falha ao clonar o repositório de configuração.${NC}"
-        echo -e "${RED}[!] Certifique-se de possuir acesso de leitura ao repositório privado.${NC}"
+        echo -e "${RED}[!] Certifique-se de ter o git instalado e conexão com a internet.${NC}"
         exit 1
     fi
 fi
