@@ -8,17 +8,16 @@ return {
       "--line-number",
       "--column",
       "--smart-case",
-      "--no-ignore",      -- ignora o .gitignore
-      "--hidden",         -- inclui arquivos escondidos
+      "--no-ignore",      -- ignore .gitignore
+      "--hidden",         -- include hidden files
     },
-    file_ignore_patterns = {}, -- nenhum padrão de ignore
+    file_ignore_patterns = {}, -- no ignore patterns
   },
   pickers = {
     find_files = {
-      hidden = true,       -- inclui dotfiles
-      no_ignore = true,    -- ignora o .gitignore
+      hidden = true,       -- include dotfiles
+      no_ignore = true,    -- ignore .gitignore
       find_command = { "fd", "--type", "f", "--hidden", "--no-ignore" },
     },
   },
 }
-

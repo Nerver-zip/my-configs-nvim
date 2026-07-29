@@ -8,7 +8,7 @@ M.setup = function()
     },
     filters = {
       dotfiles = false,
-      custom = { "^.git$" }, -- esconde apenas a pasta .git
+      custom = { "^.git$" }, -- hides only the .git folder
     },
     sync_root_with_cwd = true,
     update_focused_file = {
@@ -22,11 +22,11 @@ M.setup = function()
       preserve_window_proportions = true,
     },
     renderer = {
-      root_folder_label = false, -- ❌ remove exibição do nome do root
+      root_folder_label = false, -- ❌ removes displaying root folder name
     },
   })
 
-  -- Força o root do tree para o cwd no início
+  -- Force tree root to cwd on startup
   vim.api.nvim_create_autocmd("VimEnter", {
     callback = function()
       local api = require("nvim-tree.api")

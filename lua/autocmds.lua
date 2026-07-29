@@ -136,13 +136,13 @@ api.nvim_create_user_command("CreatePyEnv", function(opts)
 
   if fn.isdirectory(venv_dir) == 1 then
     vim.notify(
-      "Ambiente virtual já existe: " .. venv_dir,
+      "Virtual environment already exists: " .. venv_dir,
       vim.log.levels.WARN
     )
     return
   end
 
-  vim.notify("Criando ambiente virtual...", vim.log.levels.INFO)
+  vim.notify("Creating virtual environment...", vim.log.levels.INFO)
 
   vim.system({ "python3", "-m", "venv", venv_dir }):wait()
 
@@ -150,11 +150,11 @@ api.nvim_create_user_command("CreatePyEnv", function(opts)
     vim.g.python3_host_prog = python_bin
 
     vim.notify(
-      "Ambiente virtual ativado: " .. python_bin,
+      "Virtual environment activated: " .. python_bin,
       vim.log.levels.INFO
     )
   else
-    vim.notify("Falha ao criar ambiente virtual", vim.log.levels.ERROR)
+    vim.notify("Failed to create virtual environment", vim.log.levels.ERROR)
   end
 end, {
   nargs = "?",
@@ -165,7 +165,7 @@ api.nvim_create_user_command("PyEnv", function()
 
   if not python then
     vim.notify(
-      "Nenhum ambiente virtual encontrado",
+      "No virtual environment found",
       vim.log.levels.WARN
     )
     return
@@ -174,7 +174,7 @@ api.nvim_create_user_command("PyEnv", function()
   vim.g.python3_host_prog = python
 
   vim.notify(
-    "Ambiente virtual ativado: " .. python,
+    "Virtual environment activated: " .. python,
     vim.log.levels.INFO
   )
 end, {})
@@ -190,10 +190,10 @@ local templates = {
     cursor = { 6, 0 },
   },
 
-  BC = {
-    file = "beecrowd.cpp",
+  CF = {
+    file = "CF.cpp",
     top = true,
-    cursor = { 158, 0 },
+    cursor = { 29, 4 },
   },
 
   UF = { file = "UF.cpp" },

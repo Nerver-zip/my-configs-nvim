@@ -6,10 +6,10 @@ local dap = require("dap")
 local dapui = require("dapui")
 
 -- ========================
--- Funções utilitárias
+-- Utility functions
 -- ========================
 
--- Função para obter root do projeto (prefere root do LSP)
+-- Function to get project root (prefers LSP root)
 local function get_project_root()
   local clients = vim.lsp.get_active_clients()
   if clients[1] and clients[1].config and clients[1].config.root_dir then
@@ -19,7 +19,7 @@ local function get_project_root()
   end
 end
 
--- Função para buscar caminho do activate do venv
+-- Function to find venv activate path
 local function get_activate_path(root_dir)
   local is_windows = vim.fn.has("win32") == 1
   local bin_dir = is_windows and "Scripts" or "bin"
@@ -37,33 +37,97 @@ local function get_activate_path(root_dir)
   return nil
 end
 
--- ========================
--- Função genérica para abrir terminal externo ou interno
--- ========================
+-- Robust helper for clangd / LSP quickfix code actions
+local smart_code_action = function(apply)
+  local cur_win = vim.api.nvim_get_current_win()
+  local bufnr = vim.api.nvim_get_current_buf()
+  local lnum = vim.api.nvim_win_get_cursor(cur_win)[1] - 1
 
-local function open_terminal(cmd)
-  local term = os.getenv("TERMINAL") or "kitty"
-  local shell = os.getenv("SHELL") or vim.o.shell or "sh"
-
-  -- adiciona read para manter terminal aberto
-  local cmd_keep_open = cmd .. '; echo "\nPress ENTER to exit..."; read'
-
-  local is_android = vim.fn.has("android") == 1
-  local has_gui = (vim.env.DISPLAY ~= nil or vim.env.WAYLAND_DISPLAY ~= nil)
-
-  if is_android or not has_gui or vim.fn.executable(term) == 0 then
-    -- Abre no terminal embutido do Neovim
-    local split_cmd = vim.o.columns > 100 and "vsplit" or "split"
-    vim.cmd(split_cmd .. " | terminal " .. cmd_keep_open)
-  else
-    -- Executa em background via jobstart
-    vim.fn.jobstart({ term, shell, "-c", cmd_keep_open }, { detach = true })
-    vim.cmd("redraw")
+  local diags = vim.diagnostic.get(bufnr, { lnum = lnum })
+  if #diags == 0 then
+    vim.lsp.buf.code_action({ apply = apply })
+    return
   end
+
+  local clients = vim.lsp.get_clients({ bufnr = bufnr })
+  if #clients == 0 then
+    vim.lsp.buf.code_action({ apply = apply })
+    return
+  end
+
+  local client = clients[1]
+  local d = diags[1]
+
+  local params = {
+    textDocument = vim.lsp.util.make_text_document_params(bufnr),
+    range = {
+      start = { line = d.lnum, character = d.col or 0 },
+      ["end"] = { line = d.end_lnum or d.lnum, character = d.end_col or ((d.col or 0) + 1) },
+    },
+    context = {
+      diagnostics = { d.user_data and d.user_data.lsp or d },
+      triggerKind = 1,
+    },
+  }
+
+  client.request("textDocument/codeAction", params, function(err, result)
+    if err or not result or #result == 0 then
+      vim.lsp.buf.code_action({ apply = apply })
+      return
+    end
+
+    if apply then
+      if result[1].edit then
+        vim.lsp.util.apply_workspace_edit(result[1].edit, client.offset_encoding)
+      elseif result[1].command then
+        client:exec_cmd(result[1].command)
+      end
+    else
+      vim.lsp.buf.code_action({ apply = false })
+    end
+  end, bufnr)
 end
 
 -- ========================
--- Keymaps gerais
+-- Generic function to open terminal
+-- ========================
+
+local function open_terminal(cmd, autoclose)
+  local split_cmd = vim.o.columns > 100 and "vsplit" or "split"
+  vim.cmd(split_cmd)
+
+  local term_win = vim.api.nvim_get_current_win()
+  local term_buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_win_set_buf(term_win, term_buf)
+
+  if autoclose then
+    vim.fn.termopen(cmd, {
+      on_exit = function(_, exit_code)
+        vim.schedule(function()
+          if exit_code == 0 then
+            if vim.api.nvim_win_is_valid(term_win) then
+              vim.api.nvim_win_close(term_win, true)
+            end
+            if vim.api.nvim_buf_is_valid(term_buf) then
+              vim.api.nvim_buf_delete(term_buf, { force = true })
+            end
+            print("Successfully compiled C++ for debugging")
+          else
+            vim.notify("Compilation failed with exit code " .. exit_code, vim.log.levels.ERROR)
+          end
+        end)
+      end
+    })
+  else
+    local cmd_keep_open = cmd .. '; echo "\nPress ENTER to exit..."; read'
+    vim.fn.termopen(cmd_keep_open)
+  end
+
+  vim.cmd("startinsert")
+end
+
+-- ========================
+-- General keymaps
 -- ========================
 
 map("n", ";", ":", { desc = "CMD enter command mode" })
@@ -72,14 +136,23 @@ map("i", "kj", "<ESC>")
 map("i", "ij", "<Esc>")
 map("i", "ji", "<Esc>")
 
--- Leader + t n → próxima tab
-map("n", "<Leader>tn", ":tabnext<CR>", { noremap = true, silent = true, desc = "next tab" })
+-- Leader + t n -> next tab
+map("n", "<Leader>tn", ":tabnext<CR>", { noremap = true, silent = true, desc = "Next tab" })
 
--- Leader + t p → tab anterior (opcional)
-map("n", "<Leader>tp", ":tabprevious<CR>", { noremap = true, silent = true, desc = "previous tab" })
+-- Leader + t p -> previous tab (optional)
+map("n", "<Leader>tp", ":tabprevious<CR>", { noremap = true, silent = true, desc = "Previous tab" })
 
 -- ========================
--- Execução de arquivos
+-- Diagnostics & LSP
+-- ========================
+map("n", "<Leader>ca", function() smart_code_action(false) end, { desc = "Code Action" })
+map("n", "<Leader>qf", function() smart_code_action(true) end, { desc = "Apply Quickfix / Code Action" })
+map("n", "<Leader>cd", vim.diagnostic.open_float, { desc = "View diagnostic details" })
+map("n", "[d", vim.diagnostic.goto_prev, { desc = "Previous diagnostic" })
+map("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
+
+-- ========================
+-- File execution
 -- ========================
 
 map("n", "<C-M-B>", function()
@@ -88,7 +161,7 @@ map("n", "<C-M-B>", function()
   local ext = vim.fn.expand("%:e")
   local output_name = vim.fn.expand("%:t:r")
 
-  vim.cmd("w") -- salva arquivo
+  vim.cmd("w") -- save file
 
   local cmd = ""
 
@@ -117,7 +190,7 @@ map("n", "<C-M-B>", function()
   elseif ext == "sh" then
     cmd = string.format('bash "%s"', file)
   else
-    print("Extensão não suportada: " .. ext)
+    print("Unsupported extension: " .. ext)
     return
   end
 
@@ -172,7 +245,7 @@ vim.keymap.set("n", "<Leader>ds", function()
 end, { desc = "DAP Stop & Clean" })
 
 -- ========================
--- Compilação C++ para debug
+-- C++ compilation for debugging
 -- ========================
 
 map("n", "<C-A-d>", function()
@@ -187,14 +260,8 @@ map("n", "<C-A-d>", function()
     "%s -g -O0 -DLOCAL -std=c++23 '%s' -o '%s/%s'",
     compiler, file, dir, output_name
   )
-  local result = vim.fn.system(compile_cmd)
-
-  if vim.v.shell_error == 0 then
-    print("Successfully compiled C++ for debugging")
-  else
-    print("Compilation failed:\n" .. result)
-  end
-end, { noremap = true, silent = true, desc = "Compilar C++ for debugging" })
+  open_terminal(compile_cmd, true)
+end, { noremap = true, silent = true, desc = "Compile C++ for debugging" })
 
 -- ======
 -- NEOGEN

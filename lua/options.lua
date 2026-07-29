@@ -6,8 +6,8 @@ vim.opt.tabstop = 4
 vim.opt.shiftwidth = 4
 vim.opt.expandtab = true
 
--- Números
+-- Line numbers
 vim.opt.number = true
 
--- Cursor line, tema, etc, aqui mesmo se quiser
+-- Cursor line, theme, etc.
 vim.opt.cursorline = true

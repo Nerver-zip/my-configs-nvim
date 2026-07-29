@@ -7,21 +7,21 @@ local M = {}
 M.base46 = {
     theme = "catppuccin",
     --hl_override = {
-        -- Fundo geral
+        -- General background
     --    Normal = { bg = "#000000" },
     --    NormalNC = { bg = "#000000" },
 
-        -- Barra lateral (NvimTree)
+        -- Sidebar (NvimTree)
     --    NvimTreeNormal = { bg = "#000000" },
     --    NvimTreeNormalNC = { bg = "#000000" },
 
-        -- Divisórias e linhas de status
+        -- Separators and statuslines
     --    WinSeparator = { fg = "#000000", bg = "#000000" },
     --    VertSplit = { fg = "#000000", bg = "#000000" },
     --    StatusLine = { bg = "#000000" },
     --    StatusLineNC = { bg = "#000000" },
 
-        -- Telescope (se você usar)
+        -- Telescope (if you use it)
     --    TelescopeNormal = { bg = "#000000" },
     --    TelescopeBorder = { bg = "#000000", fg = "#000000" },
     --},
