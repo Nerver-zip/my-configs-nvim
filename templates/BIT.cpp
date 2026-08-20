@@ -2,42 +2,40 @@ struct FenwickTree {
     int n;
     vector<long long> bit;
 
-    FenwickTree(int n) {
-        this->n = n;
-        bit.assign(n + 1, 0);
-    }
+    FenwickTree(const vector<int>& arr){
+        n = arr.size();
+        bit = {0};
+        bit.insert(bit.end(), arr.begin(), arr.end());
 
-    FenwickTree(const vector<long long>& a) {
-        n = (int)a.size() - 1;
-        bit = a;
-
-        for (int i = 1; i <= n; i++) {
+        for(int i = 1; i <= n; ++i){
+            // pega o pai de i
             int j = i + (i & -i);
-            if (j <= n)
+            if(j <= n){
                 bit[j] += bit[i];
+            }
         }
     }
 
-    // adiciona delta na posição idx
-    void add(int idx, long long delta) {
-        while (idx <= n) {
+    void add(int idx, int delta){
+        ++idx;
+        while(idx <= n){
             bit[idx] += delta;
             idx += idx & -idx;
         }
     }
 
-    // soma do prefixo [1 .. idx]
-    long long sum(int idx) const {
-        long long ret = 0;
-        while (idx > 0) {
-            ret += bit[idx];
+    long long prefixSum(int idx) const {
+        ++idx;
+        long long res = 0;
+        while(idx > 0){
+            res += bit[idx];
             idx -= idx & -idx;
         }
-        return ret;
+        
+        return res;
     }
 
-    // soma do intervalo [l .. r]
     long long query(int l, int r) const {
-        return sum(r) - sum(l - 1);
+        return prefixSum(r) - prefixSum(l-1);
     }
 };
