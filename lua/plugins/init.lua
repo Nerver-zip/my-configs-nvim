@@ -169,5 +169,11 @@ return {
     })
   end,
 },
+{
+  "github/copilot.vim",
+  lazy = false,
+  init = function()
+    vim.g.copilot_enabled = 0
+  end,
+},
 }
-
