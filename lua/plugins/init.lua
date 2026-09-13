@@ -2,7 +2,6 @@ return {
   -- Desativar plugins pesados do NvChad
   { "hrsh7th/nvim-cmp", enabled = false },
   { "L3MON4D3/LuaSnip", enabled = false },
-  { "folke/which-key.nvim", enabled = false },
   { "lukas-reineke/indent-blankline.nvim", enabled = false },
   { "lewis6991/gitsigns.nvim", enabled = false },
   { "stevearc/conform.nvim", enabled = false },
