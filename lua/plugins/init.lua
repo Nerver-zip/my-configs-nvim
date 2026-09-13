@@ -1,7 +1,6 @@
 return {
-  -- Desativar plugins pesados do NvChad que consomem CPU/RAM desnecessariamente no K6
+  -- Desativar plugins pesados do NvChad
   { "nvim-tree/nvim-tree.lua", enabled = false },
-  { "nvim-telescope/telescope.nvim", enabled = false },
   { "hrsh7th/nvim-cmp", enabled = false },
   { "L3MON4D3/LuaSnip", enabled = false },
   { "folke/which-key.nvim", enabled = false },
@@ -11,6 +10,34 @@ return {
   { "williamboman/mason.nvim", enabled = false },
   { "williamboman/mason-lspconfig.nvim", enabled = false },
   { "neovim/nvim-lspconfig", enabled = false },
+
+  -- Telescope (Fuzzy Finder ágil)
+  {
+    "nvim-telescope/telescope.nvim",
+    opts = {
+      defaults = {
+        vimgrep_arguments = {
+          "rg",
+          "--color=never",
+          "--no-heading",
+          "--with-filename",
+          "--line-number",
+          "--column",
+          "--smart-case",
+          "--no-ignore",
+          "--hidden",
+        },
+        file_ignore_patterns = { "%.git/" },
+      },
+      pickers = {
+        find_files = {
+          hidden = true,
+          no_ignore = true,
+          find_command = { "fd", "--type", "f", "--hidden", "--no-ignore", "--exclude", ".git" },
+        },
+      },
+    },
+  },
 
   -- Treesitter com foco estrito em linguagens essenciais e alta performance
   {
