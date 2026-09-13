@@ -1,179 +1,42 @@
-local overrides = require("configs.override")
 return {
-  {
-    "stevearc/conform.nvim",
-    opts = require "configs.conform",
-  },
-  {
-    "williamboman/mason.nvim",
-    enabled = function()
-      return vim.fn.has("android") == 0
-    end,
-    config = true,
-  },
-  {
-    "williamboman/mason-lspconfig.nvim",
-    enabled = function()
-      return vim.fn.has("android") == 0
-    end,
-    config = true,
-  },
-  {
-    "neovim/nvim-lspconfig",
-    config = function()
-      require "configs.lspconfig"
-    end,
-  },
+  -- Desativar plugins pesados do NvChad que consomem CPU/RAM desnecessariamente no K6
+  { "nvim-tree/nvim-tree.lua", enabled = false },
+  { "nvim-telescope/telescope.nvim", enabled = false },
+  { "hrsh7th/nvim-cmp", enabled = false },
+  { "L3MON4D3/LuaSnip", enabled = false },
+  { "folke/which-key.nvim", enabled = false },
+  { "lukas-reineke/indent-blankline.nvim", enabled = false },
+  { "lewis6991/gitsigns.nvim", enabled = false },
+  { "stevearc/conform.nvim", enabled = false },
+  { "williamboman/mason.nvim", enabled = false },
+  { "williamboman/mason-lspconfig.nvim", enabled = false },
+  { "neovim/nvim-lspconfig", enabled = false },
+
+  -- Treesitter com foco estrito em linguagens essenciais e alta performance
   {
     "nvim-treesitter/nvim-treesitter",
     opts = {
       ensure_installed = {
-        "vim", "lua", "vimdoc",
-        "html", "css", "cpp",
-        "javascript", "java", "c",
-        "python"
+        "c",
+        "cpp",
+        "python",
+        "javascript",
+        "bash",
+        "lua",
+        "html",
+        "css",
+        "json",
+        "markdown",
+        "vim",
+        "vimdoc",
+      },
+      highlight = {
+        enable = true,
+        use_languagetree = true,
+      },
+      indent = {
+        enable = true,
       },
     },
   },
-  {
-    "hrsh7th/nvim-cmp",
-    dependencies = {
-      "hrsh7th/cmp-nvim-lsp",
-      "hrsh7th/cmp-buffer",
-      "hrsh7th/cmp-path",
-      "L3MON4D3/LuaSnip",
-      "saadparwaiz1/cmp_luasnip",
-      "rafamadriz/friendly-snippets",
-    },
-  },
-  {
-    "L3MON4D3/LuaSnip",
-    config = function()
-      require("luasnip.loaders.from_vscode").lazy_load()
-    end,
-  },
-  require("plugins.gitsigns"),
-  require("plugins.dap"),
-
-  {
-  "rcarriga/nvim-dap-ui",
-  dependencies = { "mfussenegger/nvim-dap" },
-  config = function()
-    local dapui = require("dapui")
-    dapui.setup()
-
-    local dap = require("dap")
-    dap.listeners.after.event_initialized["dapui_config"] = function()
-      dapui.open()
-    end
-    dap.listeners.before.event_terminated["dapui_config"] = function()
-      dapui.close()
-    end
-    dap.listeners.before.event_exited["dapui_config"] = function()
-      dapui.close()
-    end
-  end,
-},
-{
-  "nvim-neotest/nvim-nio",
-  lazy = true,
-},
-{
-   "nvim-telescope/telescope.nvim",
-   opts = overrides.telescope,
-},
-{
-   "nvim-tree/nvim-tree.lua",
-   config = function()
-     require("configs.nvim-tree").setup()
-   end
-},
--- Neogen (gerador de comentários)
-{
-  "danymat/neogen",
-  cmd = "Neogen",
-  config = true,
-  dependencies = "nvim-treesitter/nvim-treesitter"
-},
-  {
-    "3rd/image.nvim",
-    enabled = function()
-      return vim.fn.has("android") == 0 and vim.env.TERM == "xterm-kitty" and vim.fn.executable("magick") == 1
-    end,
-    lazy = false,
-    config = function()
-      require("image").setup({
-        backend = "kitty",
-        processor = "magick_cli",
-        integrations = {
-          markdown = { enabled = true },
-          neorg = { enabled = true },
-          typst = { enabled = true },
-          html = { enabled = false },
-          css = { enabled = false },
-        },
-        max_height_window_percentage = 50,
-        scale_factor = 1.0,
-        hijack_file_patterns = { "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.avif" },
-      })
-    end,
-  },
-{
-  "folke/trouble.nvim",
-  opts = {}, -- for default options, refer to the configuration section for custom setup.
-  cmd = "Trouble",
-  keys = {
-    {
-      "<leader>xx",
-      "<cmd>Trouble diagnostics toggle<cr>",
-      desc = "Diagnostics (Trouble)",
-    },
-    {
-      "<leader>xX",
-      "<cmd>Trouble diagnostics toggle filter.buf=0<cr>",
-      desc = "Buffer Diagnostics (Trouble)",
-    },
-    {
-      "<leader>cs",
-      "<cmd>Trouble symbols toggle focus=false<cr>",
-      desc = "Symbols (Trouble)",
-    },
-    {
-      "<leader>cl",
-      "<cmd>Trouble lsp toggle focus=false win.position=right<cr>",
-      desc = "LSP Definitions / references / ... (Trouble)",
-    },
-    {
-      "<leader>xL",
-      "<cmd>Trouble loclist toggle<cr>",
-      desc = "Location List (Trouble)",
-    },
-    {
-      "<leader>xQ",
-      "<cmd>Trouble qflist toggle<cr>",
-      desc = "Quickfix List (Trouble)",
-    },
-  },
-},
-{
-  "windwp/nvim-ts-autotag",
-  ft = { "html", "xml", "javascript", "typescript", "javascriptreact", "typescriptreact" },
-  dependencies = { "nvim-treesitter/nvim-treesitter" },
-  config = function()
-    require('nvim-ts-autotag').setup({
-      opts = {
-        enable_close = true,
-        enable_rename = true,
-        enable_close_on_slash = false,
-      },
-    })
-  end,
-},
-{
-  "github/copilot.vim",
-  lazy = false,
-  init = function()
-    vim.g.copilot_enabled = 0
-  end,
-},
 }

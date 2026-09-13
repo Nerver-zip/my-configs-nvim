@@ -2,8 +2,6 @@ require "nvchad.mappings"
 local python_config = require("configs.python_configs")
 
 local map = vim.keymap.set
-local dap = require("dap")
-local dapui = require("dapui")
 
 -- ========================
 -- Utility functions
@@ -11,7 +9,7 @@ local dapui = require("dapui")
 
 -- Function to get project root (prefers LSP root)
 local function get_project_root()
-  local clients = vim.lsp.get_active_clients()
+  local clients = vim.lsp.get_clients and vim.lsp.get_clients() or (vim.lsp.get_active_clients and vim.lsp.get_active_clients() or {})
   if clients[1] and clients[1].config and clients[1].config.root_dir then
     return clients[1].config.root_dir
   else
@@ -49,7 +47,7 @@ local smart_code_action = function(apply)
     return
   end
 
-  local clients = vim.lsp.get_clients({ bufnr = bufnr })
+  local clients = vim.lsp.get_clients and vim.lsp.get_clients({ bufnr = bufnr }) or (vim.lsp.get_active_clients and vim.lsp.get_active_clients() or {})
   if #clients == 0 then
     vim.lsp.buf.code_action({ apply = apply })
     return
@@ -111,7 +109,7 @@ local function open_terminal(cmd, autoclose)
             if vim.api.nvim_buf_is_valid(term_buf) then
               vim.api.nvim_buf_delete(term_buf, { force = true })
             end
-            print("Successfully compiled C++ for debugging")
+            print("Successfully compiled C++")
           else
             vim.notify("Compilation failed with exit code " .. exit_code, vim.log.levels.ERROR)
           end
@@ -139,7 +137,7 @@ map("i", "ji", "<Esc>")
 -- Leader + t n -> next tab
 map("n", "<Leader>tn", ":tabnext<CR>", { noremap = true, silent = true, desc = "Next tab" })
 
--- Leader + t p -> previous tab (optional)
+-- Leader + t p -> previous tab
 map("n", "<Leader>tp", ":tabprevious<CR>", { noremap = true, silent = true, desc = "Previous tab" })
 
 -- ========================
@@ -198,54 +196,7 @@ map("n", "<C-M-B>", function()
 end, { noremap = true, silent = true, desc = "Open in terminal" })
 
 -- ========================
--- DAP keymaps
--- ========================
-
-vim.keymap.set("n", "<F5>", function() dap.continue() end, { desc = "DAP Continue" })
-vim.keymap.set("n", "<F6>", function() dap.step_over() end, { desc = "DAP Step Over" })
-vim.keymap.set("n", "<F7>", function() dap.step_into() end, { desc = "DAP Step Into" })
-vim.keymap.set("n", "<F8>", function() dap.step_out() end, { desc = "DAP Step Out" })
-
-vim.keymap.set("n", "<Leader>b", function() dap.toggle_breakpoint() end, { desc = "DAP Toggle Breakpoint" })
-vim.keymap.set("n", "<Leader>B", function()
-  vim.ui.input({ prompt = "Breakpoint condition: " }, function(condition)
-    if condition then dap.set_breakpoint(condition) end
-  end)
-end, { desc = "DAP Conditional Breakpoint" })
-
-vim.keymap.set("n", "<Leader>lp", function()
-  vim.ui.input({ prompt = "Log point message: " }, function(msg)
-    if msg then dap.set_breakpoint(nil, nil, msg) end
-  end)
-end, { desc = "DAP Log Point" })
-
-vim.keymap.set("n", "<Leader>du", function() dapui.toggle() end, { desc = "DAP UI Toggle" })
-vim.keymap.set("n", "<Leader>de", function() dapui.eval() end, { desc = "DAP Eval Expression" })
-vim.keymap.set("v", "<Leader>de", function() dapui.eval() end, { desc = "DAP Eval Selection" })
-
-vim.keymap.set("n", "<Leader>dc", function() dap.run_to_cursor() end, { desc = "DAP Run to Cursor" })
-vim.keymap.set("n", "<Leader>dr", function() dap.restart() end, { desc = "DAP Restart" })
-vim.keymap.set("n", "<Leader>dl", function() dap.run_last() end, { desc = "DAP Run Last" })
-vim.keymap.set("n", "<Leader>dL", function()  dapui.float_element("scopes") end, { desc = "Floating locals" })
-vim.keymap.set("n", "<Leader>dw", function() dapui.float_element("watches") end, { desc = "Floating watches" })
-
-vim.keymap.set("n", "<Leader>ds", function()
-  dapui.close()
-  dap.terminate()
-  dap.disconnect()
-  dap.clear_breakpoints()
-
-  pcall(function()
-    local vt = require("nvim-dap-virtual-text")
-    vt.disable()
-    vt.refresh()
-  end)
-
-  vim.cmd("redraw")
-end, { desc = "DAP Stop & Clean" })
-
--- ========================
--- C++ compilation for debugging
+-- C++ compilation
 -- ========================
 
 map("n", "<C-A-d>", function()
@@ -261,9 +212,4 @@ map("n", "<C-A-d>", function()
     compiler, file, dir, output_name
   )
   open_terminal(compile_cmd, true)
-end, { noremap = true, silent = true, desc = "Compile C++ for debugging" })
-
--- ======
--- NEOGEN
--- ======
-map("n", "<leader>ng", ":Neogen<CR>", { desc = "Generate docstring via Neogen" })
+end, { noremap = true, silent = true, desc = "Compile C++" })
