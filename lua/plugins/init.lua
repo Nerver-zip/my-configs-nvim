@@ -1,6 +1,5 @@
 return {
   -- Desativar plugins pesados do NvChad
-  { "nvim-tree/nvim-tree.lua", enabled = false },
   { "hrsh7th/nvim-cmp", enabled = false },
   { "L3MON4D3/LuaSnip", enabled = false },
   { "folke/which-key.nvim", enabled = false },
@@ -10,6 +9,15 @@ return {
   { "williamboman/mason.nvim", enabled = false },
   { "williamboman/mason-lspconfig.nvim", enabled = false },
   { "neovim/nvim-lspconfig", enabled = false },
+
+  -- NvimTree (Explorador de Arquivos sob demanda)
+  {
+    "nvim-tree/nvim-tree.lua",
+    cmd = { "NvimTreeToggle", "NvimTreeFocus" },
+    config = function()
+      require("configs.nvim-tree").setup()
+    end,
+  },
 
   -- Telescope (Fuzzy Finder ágil)
   {
